@@ -19,9 +19,11 @@ local function storeItems()
 
     for _, inventoryType in pairs(ALL_INVENTORY) do
         local container = Inventory.GetInventoryContainer(inventoryType)
+        Echo(inventoryType .. ": " .. container.FreeSlots .. " free slots")
         if container then
             for slot = 0, SLOT_COUNT - 1 do
                 local item = GetItemBySlot(inventoryType, slot)
+                Echo(item.ItemId)
                 if item and not item.IsEmpty and item.Count == 99 and SALVAGE_ITEM_IDS[item.ItemId] then
                     itemsToStore[#itemsToStore + 1] = item
                     Echo(item.Count)
@@ -32,12 +34,15 @@ local function storeItems()
 
     for _, inventoryType in pairs(saddlesToUse) do
         local container = Inventory.GetInventoryContainer(inventoryType)
+        Echo(inventoryType .. ": " .. container.FreeSlots .. " free slots")
         for i = #itemsToStore, 1, -1 do
             local item = itemsToStore[i]
             if container and container.FreeSlots > 0 then
                 item:MoveItemSlot(inventoryType)
+                Echo("Moved item " .. item.ItemId .. " to " .. inventoryType)
                 table.remove(itemsToStore, i)
             end
+            Wait(0.3)
         end
     end
 end
