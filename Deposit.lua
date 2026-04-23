@@ -31,6 +31,7 @@ local function storeItems()
         end
     end
 
+    yield("/saddlebag")
     for _, inventoryType in pairs(saddlesToUse) do
         local container = Inventory.GetInventoryContainer(inventoryType)
         Echo(tostring(inventoryType) .. ": " .. container.FreeSlots .. " free slots")
