@@ -16,7 +16,6 @@ local function StoreItems()
     else
         saddlesToUse = NORMAL_SADDLEBAG
     end
-
     for _, inventoryType in pairs(ALL_INVENTORY) do
         local container = Inventory.GetInventoryContainer(inventoryType)
         Echo(tostring(inventoryType) .. ": " .. container.FreeSlots .. " free slots")
@@ -44,6 +43,10 @@ local function StoreItems()
                 table.remove(itemsToStore, i)
                 Wait(0.3)
             end
+        end
+        if tostring(inventoryType) == "PremiumSaddleBag2" and container.FreeSlots == 0 then
+            Echo("Not enough space in saddlebags to store all items! Remaining items")
+            yield("/snd stop all")
         end
     end
 end
