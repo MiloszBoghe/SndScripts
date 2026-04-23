@@ -34,7 +34,7 @@ local function storeItems()
     if not Addons.GetAddon("InventoryBuddy").Ready then
         yield("/saddlebag")
     end
-    
+
     for _, inventoryType in pairs(saddlesToUse) do
         local container = Inventory.GetInventoryContainer(inventoryType)
         Echo(tostring(inventoryType) .. ": " .. container.FreeSlots .. " free slots")
@@ -73,5 +73,10 @@ repeat
     end
     Echo("Confirmed trading is done, storing items...")
     storeItems()
+    
+    if Addons.GetAddon("InventoryBuddy").Ready then
+        yield("/saddlebag")
+    end
+
     Echo("Finished storing items, restarting...")
 until false
