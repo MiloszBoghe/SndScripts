@@ -41,8 +41,8 @@ local function storeItems()
                 item:MoveItemSlot(inventoryType)
                 Echo("Moved item " .. item.ItemId .. " to " .. inventoryType)
                 table.remove(itemsToStore, i)
+                Wait(0.3)
             end
-            Wait(0.3)
         end
     end
 end
