@@ -25,13 +25,16 @@ local function storeItems()
                 local item = GetItemBySlot(inventoryType, slot)
                 if item and not item.IsEmpty and item.Count == 99 and SALVAGE_ITEM_IDS[item.ItemId] then
                     itemsToStore[#itemsToStore + 1] = item
-                    Echo("Item added to store later -> itemId: "..item.ItemId.. "itemCount: " .. item.Count)
+                    Echo("Item added to store later -> itemId: " .. item.ItemId .. "itemCount: " .. item.Count)
                 end
             end
         end
     end
 
-    yield("/saddlebag")
+    if not Addons.GetAddon("InventoryBuddy").Ready then
+        yield("/saddlebag")
+    end
+    
     for _, inventoryType in pairs(saddlesToUse) do
         local container = Inventory.GetInventoryContainer(inventoryType)
         Echo(tostring(inventoryType) .. ": " .. container.FreeSlots .. " free slots")
