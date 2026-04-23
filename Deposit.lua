@@ -44,7 +44,7 @@ local function StoreItems()
                 Wait(0.3)
             end
         end
-        if tostring(inventoryType) == "PremiumSaddleBag2" and container.FreeSlots == 0 then
+        if tostring(inventoryType) == "PremiumSaddleBag2: 4101" and container.FreeSlots == 0 then
             Echo("Not enough space in saddlebags to store all items! Remaining items")
             yield("/snd stop all")
         end
