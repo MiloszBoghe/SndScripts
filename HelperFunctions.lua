@@ -1,5 +1,17 @@
 local SHOP = "Shop"
 
+function OpenSaddleBag()
+    if not Addons.GetAddon("InventoryBuddy").Ready then
+        yield("/saddlebag")
+    end
+end
+
+function CloseSaddleBag()
+    if Addons.GetAddon("InventoryBuddy").Ready then
+        yield("/saddlebag")
+    end
+end
+
 function GetZoneID()
     return Svc.ClientState.TerritoryType
 end

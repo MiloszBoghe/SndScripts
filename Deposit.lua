@@ -7,7 +7,7 @@ local function GetItemBySlot(inventoryType, slot)
     return Inventory.GetInventoryItemBySlot(inventoryType, slot)
 end
 
-local function storeItems()
+local function StoreItems()
     local itemsToStore = {}
     local saddlesToUse
 
@@ -31,9 +31,7 @@ local function storeItems()
         end
     end
 
-    if not Addons.GetAddon("InventoryBuddy").Ready then
-        yield("/saddlebag")
-    end
+    OpenSaddleBag()
 
     for _, inventoryType in pairs(saddlesToUse) do
         local container = Inventory.GetInventoryContainer(inventoryType)
@@ -72,11 +70,8 @@ repeat
         waitTime = waitTime + 0.1
     end
     Echo("Confirmed trading is done, storing items...")
-    storeItems()
-    
-    if Addons.GetAddon("InventoryBuddy").Ready then
-        yield("/saddlebag")
-    end
+    StoreItems()
+    CloseSaddleBag()
 
     Echo("Finished storing items, restarting...")
 until false
