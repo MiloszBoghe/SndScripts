@@ -38,7 +38,7 @@ local function storeItems()
             local item = itemsToStore[i]
             if container and container.FreeSlots > 0 then
                 item:MoveItemSlot(inventoryType)
-                Echo("Moved item " .. item.ItemId .. " to " .. inventoryType)
+                Echo("Moved item " .. item.ItemId .. " to " .. tostring(inventoryType))
                 table.remove(itemsToStore, i)
                 Wait(0.3)
             end
