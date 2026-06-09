@@ -34,6 +34,21 @@ function Wait(seconds)
     yield("/wait " .. tostring(seconds))
 end
 
+function Target(entity)
+    if Entity.Target then
+        if Entity.Target.Name ~= entity then
+            repeat            
+                yield("/target "..entity.."")
+            until Entity.Target.Name == entity
+        elseif Entity.Target.Name == entity then
+        end
+    elseif Entity.Target ~= true then
+        repeat            
+            yield("/target "..entity.."")
+        until Entity.Target.Name == entity
+    end
+end
+
 function TargetVendor(vendorName, timeoutSeconds, interactDelay)
     local elapsed = 0
 
@@ -91,6 +106,37 @@ function PathfindAndMoveTo(x, y, z, tralse)
     end
     while IPC.vnavmesh.IsRunning() do
         yield("/wait 0.1")
+    end
+end
+
+function WaitWhileZoneTransition()
+    repeat
+        yield("/wait 0.001")
+    until GetCharacterCondition(45, true) and GetCharacterCondition(51, true)
+    repeat
+        yield("/wait 0.001")
+    until GetCharacterCondition(45, false) and GetCharacterCondition(51, false)
+    if IPC.IsInstalled(vnavmesh) == true then
+        repeat
+            yield("/wait 0.001")
+        until IPC.vnavmesh.IsReady() == true
+    end
+    WaitTillNotBusy()
+end
+
+function WaitTillNotBusy()
+    repeat
+        yield("/wait 0.0001")
+    until Player.IsBusy == false
+end
+
+function GetCharacterCondition(index, expected)
+    if index and expected ~= nil then
+        return Svc.Condition[index] == expected
+    elseif index then
+        return Svc.Condition[index]
+    else
+        return Svc.Condition
     end
 end
 
