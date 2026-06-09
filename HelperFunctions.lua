@@ -19,7 +19,7 @@ end
 function IsBusy()
     -- 45 = Loading/Between Areas, 25 = Occupied, 2 = Transitioning
     return IsPlayerCasting() or IPC.vnavmesh.IsRunning() or Svc.Condition[45] or Svc.Condition[25] or Svc.Condition[2] or
-    not IsPlayerAvailable()
+        not IsPlayerAvailable()
 end
 
 function PathIsRunning()
@@ -40,7 +40,7 @@ function TargetVendor(vendorName, timeoutSeconds, interactDelay)
     while elapsed < timeoutSeconds do
         yield("/target " .. vendorName)
         Wait(interactDelay)
-        
+
         if Entity.Target and Entity.Target.Name == vendorName then
             return true
         end
@@ -122,7 +122,6 @@ function WaitForAddon(addonName, timeoutSeconds)
 end
 
 function BuyItems(items, defaultTargetCount, selection)
-    
     yield("/callback SelectIconString true " .. selection)
 
     if not WaitForAddon(SHOP, 3) then
@@ -142,6 +141,74 @@ end
 
 function Stop()
     yield("/snd stop all")
+end
+
+function GetFullStatusList()
+    local player = Svc.Objects.LocalPlayer
+    if not player then
+        yield("/echo Player is nil")
+        return
+    end
+
+    local statuses = player.StatusList
+    if not statuses then
+        yield("/echo StatusList is nil")
+        return
+    end
+
+    --for i = 0, 29 do
+    for i = 0, statuses.Length - 1 do
+        local status = statuses[i]
+        if status and status.StatusId ~= 0 then
+            yield(string.format("/echo [%d] ID: %d  Time: %.2f", i, status.StatusId, status.RemainingTime or 0))
+        end
+    end
+end
+
+function GetStatusTimeRemaining(statusID)
+    local player = Svc.Objects.LocalPlayer
+    if not player then
+        yield("/echo Player is nil")
+        return 0
+    end
+
+    local statuses = player.StatusList
+    if not statuses then
+        yield("/echo StatusList is nil")
+        return 0
+    end
+
+    --for i = 0, 29 do -- max 30 statuses
+    for i = 0, statuses.Length - 1 do
+        local status = statuses[i]
+        if status and status.StatusId == statusID then
+            return status.RemainingTime or 0
+        end
+    end
+    return 0
+end
+
+function HasStatus(statusID)
+    local player = Svc.Objects.LocalPlayer
+    if not player then
+        yield("/echo Player is nil")
+        return 0
+    end
+
+    local statuses = player.StatusList
+    if not statuses then
+        yield("/echo StatusList is nil")
+        return 0
+    end
+
+    --for i = 0, 29 do -- max 30 statuses
+    for i = 0, statuses.Length - 1 do
+        local status = statuses[i]
+        if status and status.StatusId == statusID then
+            return true
+        end
+    end
+    return false
 end
 
 ALL_INVENTORY = {
@@ -177,4 +244,8 @@ SALVAGE_ITEM_IDS = {
     [22505] = "Extravagant Salvaged Bracelet",
     [22506] = "Extravagant Salvaged Earring",
     [22507] = "Extravagant Salvaged Necklace",
+}
+
+STATUS_IDS = {
+    ROAD_TO_90 = 1411,
 }

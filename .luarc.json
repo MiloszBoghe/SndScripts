@@ -1,0 +1,45 @@
+{
+  "workspace": {
+    "library": [
+      "./.vscode/snd-meta"
+    ]
+  },
+  "diagnostics": {
+    "globals": [
+      "ExecuteAction",
+      "ExecuteGeneralAction",
+      "Teleport",
+      "CancelCast",
+      "GetActionStatus",
+      "GetActionInfo",
+      "LimitBreak",
+      "Log",
+      "LogDebug",
+      "LogVerbose",
+      "Run",
+      "GetPartyMember",
+      "GetAllianceMember",
+      "GetEntityByName",
+      "Player",
+      "Target",
+      "FocusTarget",
+      "GetInventoryContainer",
+      "GetInventoryItemBySlot",
+      "GetInventoryItem",
+      "GetJob",
+      "GetGearset",
+      "Addons",
+      "yield",
+      "Instances",
+      "Quests",
+      "IPC",
+      "Actions",
+      "Inventory",
+      "Entity",
+      "Svc",
+      "Vector3",
+      "vnavmesh",
+      "import"
+    ]
+  }
+}
