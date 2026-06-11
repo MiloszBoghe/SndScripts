@@ -1,156 +1,8 @@
-local SHOP = "Shop"
-
-function OpenSaddleBag()
-    if not Addons.GetAddon("InventoryBuddy").Ready then
-        yield("/saddlebag")
-    end
+function Stop()
+    yield("/snd stop all")
 end
 
-function CloseSaddleBag()
-    if Addons.GetAddon("InventoryBuddy").Ready then
-        yield("/saddlebag")
-    end
-end
-
-function GetZoneID()
-    return Svc.ClientState.TerritoryType
-end
-
-function IsBusy()
-    -- 45 = Loading/Between Areas, 25 = Occupied, 2 = Transitioning
-    return IsPlayerCasting() or IPC.vnavmesh.IsRunning() or Svc.Condition[45] or Svc.Condition[25] or Svc.Condition[2] or
-        not IsPlayerAvailable()
-end
-
-function PathIsRunning()
-    return IPC.vnavmesh.IsRunning()
-end
-
-function Echo(message)
-    yield("/echo " .. tostring(message))
-end
-
-function Wait(seconds)
-    yield("/wait " .. tostring(seconds))
-end
-
-function Target(entity)
-    if Entity.Target then
-        if Entity.Target.Name ~= entity then
-            repeat            
-                yield("/target "..entity.."")
-            until Entity.Target.Name == entity
-        elseif Entity.Target.Name == entity then
-        end
-    elseif Entity.Target ~= true then
-        repeat            
-            yield("/target "..entity.."")
-        until Entity.Target.Name == entity
-    end
-end
-
-function TargetVendor(vendorName, timeoutSeconds, interactDelay)
-    local elapsed = 0
-
-    while elapsed < timeoutSeconds do
-        yield("/target " .. vendorName)
-        Wait(interactDelay)
-
-        if Entity.Target and Entity.Target.Name == vendorName then
-            return true
-        end
-
-        elapsed = elapsed + interactDelay
-    end
-
-    if not Entity.Target or Entity.Target.Name ~= vendorName then
-        Echo("Failed to target " .. vendorName)
-        Stop()
-    end
-    return Entity.Target and Entity.Target.Name == vendorName
-end
-
-function Interact(addonName, timeoutSeconds, interactDelay)
-    local elapsed = 0
-
-    while elapsed < timeoutSeconds do
-        if Addons.GetAddon(addonName).Ready then
-            return true
-        end
-
-        Echo("Interacting with vendor...")
-        yield("/interact")
-        Wait(interactDelay)
-        elapsed = elapsed + interactDelay
-    end
-
-    if not Addons.GetAddon(addonName).Ready then
-        Echo("Failed to interact with vendor")
-        Stop()
-    end
-    return Addons.GetAddon(addonName).Ready
-end
-
-function PathtoTarget()
-    if Entity.Target and Entity.Target.Name then
-        PathfindAndMoveTo(Entity.Target.Position.X, Entity.Target.Position.Y, Entity.Target.Position.Z, false)
-    end
-end
-
-function PathfindAndMoveTo(x, y, z, tralse)
-    import("System.Numerics")
-    IPCUPCWEALLPC = Vector3(x, y, z)
-    IPC.vnavmesh.PathfindAndMoveTo(IPCUPCWEALLPC, tralse)
-    while IPC.vnavmesh.PathfindInProgress() do
-        yield("/wait 0.1")
-    end
-    while IPC.vnavmesh.IsRunning() do
-        yield("/wait 0.1")
-    end
-end
-
-function WaitWhileZoneTransition()
-    repeat
-        yield("/wait 0.001")
-    until GetCharacterCondition(45, true) and GetCharacterCondition(51, true)
-    repeat
-        yield("/wait 0.001")
-    until GetCharacterCondition(45, false) and GetCharacterCondition(51, false)
-    if IPC.IsInstalled(vnavmesh) == true then
-        repeat
-            yield("/wait 0.001")
-        until IPC.vnavmesh.IsReady() == true
-    end
-    WaitTillNotBusy()
-end
-
-function WaitTillNotBusy()
-    repeat
-        yield("/wait 0.0001")
-    until Player.IsBusy == false
-end
-
-function GetCharacterCondition(index, expected)
-    if index and expected ~= nil then
-        return Svc.Condition[index] == expected
-    elseif index then
-        return Svc.Condition[index]
-    else
-        return Svc.Condition
-    end
-end
-
-function IsPlayerAvailable()
-    return Player.Available
-end
-
--- IsPlayerCasting()
---
--- Player.Entity.IsCasting wrapper, use to check if player is casting (e.g. using spells,)
-function IsPlayerCasting()
-    return Player.Entity and Player.Entity.IsCasting
-end
-
+--region AddOn handling
 function WaitForAddon(addonName, timeoutSeconds)
     local elapsed = 0
     local step = 0.1
@@ -166,27 +18,43 @@ function WaitForAddon(addonName, timeoutSeconds)
 
     return Addons.GetAddon(addonName).Ready
 end
+--endregion
 
-function BuyItems(items, defaultTargetCount, selection)
-    yield("/callback SelectIconString true " .. selection)
 
-    if not WaitForAddon(SHOP, 3) then
-        Echo("Failed to open shop")
-        return false
-    end
+--region Player / Character
 
-    for _ = 1, defaultTargetCount do
-        for _, itemRow in ipairs(items) do
-            yield("/callback " .. SHOP .. " true 0 " .. itemRow .. " 1")
-            Wait(0.4)
-        end
-    end
+STATUS_IDS = {
+    ROAD_TO_90 = 1411,
+}
 
-    yield("/callback Shop true -1")
+function IsPlayerAvailable()
+    return Player.Available
 end
 
-function Stop()
-    yield("/snd stop all")
+function IsPlayerCasting()
+    return Player.Entity and Player.Entity.IsCasting
+end
+
+function IsBusy()
+    -- 45 = Loading/Between Areas, 25 = Occupied, 2 = Transitioning
+    return IsPlayerCasting() or IPC.vnavmesh.IsRunning() or Svc.Condition[45] or Svc.Condition[25] or Svc.Condition[2] or
+        Player.IsBusy or not IsPlayerAvailable()
+end
+
+function WaitTillNotBusy()
+    repeat
+        yield("/wait 0.1")
+    until Player.IsBusy == false
+end
+
+function GetCharacterCondition(index, expected)
+    if index and expected ~= nil then
+        return Svc.Condition[index] == expected
+    elseif index then
+        return Svc.Condition[index]
+    else
+        return Svc.Condition
+    end
 end
 
 function GetFullStatusList()
@@ -257,6 +125,40 @@ function HasStatus(statusID)
     return false
 end
 
+--endregion
+
+
+--region Echo, Wait, GetZoneId
+function Echo(message)
+    yield("/echo " .. tostring(message))
+end
+
+function Wait(seconds)
+    yield("/wait " .. tostring(seconds))
+end
+
+function GetZoneID()
+    return Svc.ClientState.TerritoryType
+end
+
+--endregion
+
+
+--region Saddlebag and inventory stuff
+local SHOP = "Shop"
+
+function OpenSaddleBag()
+    if not Addons.GetAddon("InventoryBuddy").Ready then
+        yield("/saddlebag")
+    end
+end
+
+function CloseSaddleBag()
+    if Addons.GetAddon("InventoryBuddy").Ready then
+        yield("/saddlebag")
+    end
+end
+
 ALL_INVENTORY = {
     InventoryType.Inventory1,
     InventoryType.Inventory2,
@@ -292,6 +194,140 @@ SALVAGE_ITEM_IDS = {
     [22507] = "Extravagant Salvaged Necklace",
 }
 
-STATUS_IDS = {
-    ROAD_TO_90 = 1411,
-}
+function NeedsRepair(repairThreshold)
+    local repairList = Inventory.GetItemsInNeedOfRepairs(repairThreshold)
+    local needsRepair = repairList.Count > 0
+    return needsRepair
+end
+
+function RepairGear()
+    if Inventory.GetItemCount(33916) > 0 then
+        if NeedsRepair(10) then
+            if not Addons.GetAddon("Repair").Ready then
+                local repairActionId = 6
+                Actions.ExecuteGeneralAction(repairActionId)
+                Wait(0.1)
+            end
+            yield("/callback Repair true 0")
+        end
+    end
+end
+
+--Example for BuyItems
+
+--local gearToBuy = {
+--    1, -- Rroneek Serge Hat of Gathering
+--    3, -- Gomphotherium Doublet of Gathering
+--    5, -- Gomphotherium Halfgloves of Gathering
+--    7, -- Rroneek Serge Trousers of Gathering
+--    9, -- Gomphotherium Boots of Gathering
+--}
+
+-- defaultTargetCount = 5
+
+--selection is the index of the shop menu.
+-- function to be called after interacting with the vendor
+function BuyItems(items, defaultTargetCount, selection)
+    yield("/callback SelectIconString true " .. selection)
+
+    if not WaitForAddon(SHOP, 3) then
+        Echo("Failed to open shop")
+        return false
+    end
+
+    for _ = 1, defaultTargetCount do
+        for _, itemRow in ipairs(items) do
+            yield("/callback " .. SHOP .. " true 0 " .. itemRow .. " 1")
+            Wait(0.4)
+        end
+    end
+
+    yield("/callback Shop true -1")
+end
+
+-- endregion
+
+
+--region Target, Interact and movement functions
+
+function Target(entity)
+    if Entity.Target then
+        if Entity.Target.Name ~= entity then
+            repeat
+                yield("/target " .. entity .. "")
+            until Entity.Target.Name == entity
+        elseif Entity.Target.Name == entity then
+        end
+    elseif Entity.Target ~= true then
+        repeat
+            yield("/target " .. entity .. "")
+        until Entity.Target.Name == entity
+    end
+end
+
+function TargetVendor(vendorName, timeoutSeconds, interactDelay)
+    local elapsed = 0
+
+    while elapsed < timeoutSeconds do
+        yield("/target " .. vendorName)
+        Wait(interactDelay)
+
+        if Entity.Target and Entity.Target.Name == vendorName then
+            return true
+        end
+
+        elapsed = elapsed + interactDelay
+    end
+
+    if not Entity.Target or Entity.Target.Name ~= vendorName then
+        Echo("Failed to target " .. vendorName)
+        Stop()
+    end
+    return Entity.Target and Entity.Target.Name == vendorName
+end
+
+function Interact(addonName, timeoutSeconds, interactDelay)
+    local elapsed = 0
+
+    while elapsed < timeoutSeconds do
+        if Addons.GetAddon(addonName).Ready then
+            return true
+        end
+
+        Echo("Interacting with vendor...")
+        yield("/interact")
+        Wait(interactDelay)
+        elapsed = elapsed + interactDelay
+    end
+
+    if not Addons.GetAddon(addonName).Ready then
+        Echo("Failed to interact with vendor")
+        Stop()
+    end
+    return Addons.GetAddon(addonName).Ready
+end
+
+function PathfindAndMoveTo(x, y, z, tralse)
+    import("System.Numerics")
+    IPCUPCWEALLPC = Vector3(x, y, z)
+    IPC.vnavmesh.PathfindAndMoveTo(IPCUPCWEALLPC, tralse)
+    while IPC.vnavmesh.PathfindInProgress() do
+        yield("/wait 0.1")
+    end
+    while IPC.vnavmesh.IsRunning() do
+        yield("/wait 0.1")
+    end
+end
+
+function WaitWhileZoneTransition()
+    repeat
+        yield("/wait 0.1")
+    until not IsBusy()
+end
+
+function PathtoTarget()
+    if Entity.Target and Entity.Target.Name then
+        PathfindAndMoveTo(Entity.Target.Position.X, Entity.Target.Position.Y, Entity.Target.Position.Z, false)
+    end
+end
+-- endregion
