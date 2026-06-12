@@ -74,6 +74,7 @@ function AbandonMission()
 
     yield("/callback WKSMissionInfomation true 12 1")
     yield("/wait 0.2")
+    return nil
 end
 
 --endregion
@@ -82,7 +83,8 @@ end
 --region Player / Character
 
 STATUS_IDS = {
-    ROAD_TO_90 = 1411,
+    ROAD_TO_90 = 1411,  
+    WISE_TO_THE_WORLD = 2765
 }
 
 function IsPlayerAvailable()
@@ -93,9 +95,17 @@ function IsPlayerCasting()
     return Player.Entity and Player.Entity.IsCasting
 end
 
+function IsPlayerOccupied()
+    return Svc.Condition[25]
+end
+
+function ExecutingGatherAction()
+    return Svc.Condition[42]
+end
+
 function IsBusy()
     -- 45 = Loading/Between Areas, 25 = Occupied, 2 = Transitioning
-    return IsPlayerCasting() or IPC.vnavmesh.IsRunning() or Svc.Condition[45] or Svc.Condition[25] or Svc.Condition[2] or
+    return IsPlayerCasting() or IPC.vnavmesh.IsRunning() or Svc.Condition[45] or IsPlayerOccupied() or Svc.Condition[2] or
         Player.IsBusy or not IsPlayerAvailable()
 end
 
@@ -413,7 +423,10 @@ end
 --region Gathering
 function Action(action)
     yield("/ac " .. action)
-    Wait(1.5)
+    repeat 
+        Wait(0.1)
+    until not ExecutingGatherAction()
+    Wait(0.2)
 end
 
 function GetCollectability()

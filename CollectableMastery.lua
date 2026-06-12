@@ -1,43 +1,58 @@
 require('HelperFunctions')
+local function RestoreIntegrity()
+    Eureka = HasStatus(STATUS_IDS.WISE_TO_THE_WORLD)
+    while GetIntegrity() <= 3 and (GetGp() >= 300 or Eureka) do
+        if (Eureka) then
+            Echo("Using Wise to the World")
+            Action(ACTIONS.WISE_TO_THE_WORLD)
+        end
+
+        if GetGp() >= 300 and GetIntegrity() < 4 then
+            Echo("Using Solid Reason")
+            Action(ACTIONS.SOLID_REASON)
+            Eureka = HasStatus(STATUS_IDS.WISE_TO_THE_WORLD)
+        end
+    end
+end
 
 local function Opener()
+    Echo("Starting opener")
     Action(ACTIONS.DUTY_ACTION_2)
+    Wait(0.5)
     Action(ACTIONS.PRIMING_TOUCH)
     Action(ACTIONS.METICULOUS)
+    Echo("Opener complete")
 end
 
 local function MaxQuality()
+    Echo("Maximizing quality")
     Action(ACTIONS.DUTY_ACTION_2)
-    local integrity = GetIntegrity()
-    if (integrity > 1) then
+    if GetIntegrity() > 1 and GetCollectability() < 1000 then
         Echo("Using Meticulous Touch")
         Action(ACTIONS.METICULOUS)
-    else
-        Echo("Using Wise to the World")
-        Action(ACTIONS.WISE_TO_THE_WORLD)
-        Echo("Integrity is low, using Solid Reason")
-        Action(ACTIONS.SOLID_REASON)
+    end
+
+    if GetIntegrity() <= 3 then
+        RestoreIntegrity()
     end
 end
 
 local function CollectNode()
-    local gp = GetGp()
-    local integrity = GetIntegrity()
-
-    if (integrity <= 3) then
-        Echo("Using Wise to the World")
-        Action(ACTIONS.WISE_TO_THE_WORLD)
-        if (GetIntegrity() <= 3 and gp >= 300) then
-            Echo("using Solid Reason")
-            Action(ACTIONS.SOLID_REASON)
-        end
+    if (GetIntegrity() <= 3) then
+        RestoreIntegrity()
     end
     Echo("Collecting node")
     Action(ACTIONS.COLLECT)
     Wait(1.5)
 end
 
+
+
 while true do
+    while GetGp() < 985 do
+        Echo("GP is too low, waiting...")
+        Wait(5)
+    end
     local repairGear = RepairGear()
     if (repairGear) then
         Echo("Repairing gear")
@@ -55,18 +70,21 @@ while true do
     Wait(0.2)
 
     if (CurrentMission and GetIntegrity() > 0) then
-        Opener()
+        if (GetCollectability() < 1000) then
+            Opener()
+        end
 
-        repeat
+        while GetCollectability() < 1000 do
             MaxQuality()
-            Wait(2)
-        until GetCollectability() == 1000
+        end
 
-        repeat
+        while GetIntegrity() > 0 do
             CollectNode()
-        until GetIntegrity() == 0
-        Wait(2)
+        end
+        Wait(1)
         CurrentMission = SubmitReport()
+        Wait(2)
+        CurrentMission = AbandonMission()
     elseif CurrentMission then
         CurrentMission = SubmitReport()
     end
