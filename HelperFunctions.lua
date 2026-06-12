@@ -3,6 +3,10 @@ function Stop()
 end
 
 --region AddOn handling
+function IsAddonReady(addonName)
+    return Addons.GetAddon(addonName).Ready
+end
+
 function WaitForAddon(addonName, timeoutSeconds)
     local elapsed = 0
     local step = 0.1
@@ -18,6 +22,60 @@ function WaitForAddon(addonName, timeoutSeconds)
 
     return Addons.GetAddon(addonName).Ready
 end
+
+function GetNodeText(addon, ...)
+    if (IsAddonReady(addon)) then
+        return Addons.GetAddon(addon):GetNode(...).Text
+    else
+        return nil
+    end
+end
+
+--endregion
+
+
+--region CosmicExploration
+
+function GetCurrentMission()
+    if not IsAddonReady("WKSMissionInfomation") then
+        yield("/callback WKSHud true 11")
+        yield("/wait 0.5")
+    end
+    return GetNodeText("WKSMissionInfomation", 1, 3)
+end
+
+function StartMission()
+    Echo("Starting mission")
+    if (not CurrentMission) then
+        if not IsAddonReady("WKSMission") then
+            yield("/callback WKSHud true 11")
+            yield("/wait 0.5")
+        end
+        yield("/callback WKSMission true 13 1621")
+        Wait(0.5)
+    end
+end
+
+function SubmitReport()
+    if not IsAddonReady("WKSMissionInfomation") then
+        yield("/callback WKSHud true 11")
+        yield("/wait 0.5")
+    end
+
+    yield("/callback WKSMissionInfomation true 11 1")
+    return nil
+end
+
+function AbandonMission()
+    if not IsAddonReady("WKSMissionInfomation") then
+        yield("/callback WKSHud true 11")
+        yield("/wait 0.2")
+    end
+
+    yield("/callback WKSMissionInfomation true 12 1")
+    yield("/wait 0.2")
+end
+
 --endregion
 
 
@@ -209,6 +267,9 @@ function RepairGear()
                 Wait(0.1)
             end
             yield("/callback Repair true 0")
+            return true
+        else
+            return false
         end
     end
 end
@@ -265,6 +326,17 @@ function Target(entity)
     end
 end
 
+function LockOn()
+    if Entity.Target then
+        Echo("Test")
+        yield("/lockon")
+    end
+end
+
+function AutoMove()
+    yield("/automove")
+end
+
 function TargetVendor(vendorName, timeoutSeconds, interactDelay)
     local elapsed = 0
 
@@ -284,6 +356,10 @@ function TargetVendor(vendorName, timeoutSeconds, interactDelay)
         Stop()
     end
     return Entity.Target and Entity.Target.Name == vendorName
+end
+
+function YieldInteract()
+    yield("/interact")
 end
 
 function Interact(addonName, timeoutSeconds, interactDelay)
@@ -330,4 +406,35 @@ function PathtoTarget()
         PathfindAndMoveTo(Entity.Target.Position.X, Entity.Target.Position.Y, Entity.Target.Position.Z, false)
     end
 end
+
 -- endregion
+
+
+--region Gathering
+function Action(action)
+    yield("/ac " .. action)
+    Wait(1.5)
+end
+
+function GetCollectability()
+    return tonumber(GetNodeText("GatheringMasterpiece", 1, 37, 42, 47)) or 0
+end
+
+function GetIntegrity()
+    return tonumber(GetNodeText("GatheringMasterpiece", 1, 73, 119, 126)) or 0
+end
+
+function GetGp()
+    return tonumber(GetNodeText("_ParameterWidget", 1, 4, 3)) or 0
+end
+
+ACTIONS = {
+    METICULOUS = "Meticulous Prospector",
+    PRIMING_TOUCH = "Priming Touch",
+    SOLID_REASON = "Solid Reason",
+    WISE_TO_THE_WORLD = "Wise to the World",
+    DUTY_ACTION_2 = "Duty Action II",
+    COLLECT = "Collect",
+}
+
+--endregion
