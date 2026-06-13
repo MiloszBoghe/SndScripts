@@ -44,14 +44,14 @@ function GetCurrentMission()
     return GetNodeText("WKSMissionInfomation", 1, 3)
 end
 
-function StartMission()
+function StartMission(missionId)
     Echo("Starting mission")
     if (not CurrentMission) then
         if not IsAddonReady("WKSMission") then
             yield("/callback WKSHud true 11")
             yield("/wait 0.5")
         end
-        yield("/callback WKSMission true 13 1621")
+        yield("/callback WKSMission true 13 " .. missionId)
         Wait(0.5)
     end
 end
@@ -83,7 +83,7 @@ end
 --region Player / Character
 
 STATUS_IDS = {
-    ROAD_TO_90 = 1411,  
+    ROAD_TO_90 = 1411,
     WISE_TO_THE_WORLD = 2765
 }
 
@@ -423,7 +423,7 @@ end
 --region Gathering
 function Action(action)
     yield("/ac " .. action)
-    repeat 
+    repeat
         Wait(0.1)
     until not ExecutingGatherAction()
     Wait(0.2)
@@ -444,7 +444,7 @@ end
 ACTIONS = {
     METICULOUS = "Meticulous Prospector",
     PRIMING_TOUCH = "Priming Touch",
-    SOLID_REASON = "Solid Reason",
+    INTEGRITY_RESTORE = JobId == 16 and "Solid Reason" or "Ageless Words",
     WISE_TO_THE_WORLD = "Wise to the World",
     DUTY_ACTION_2 = "Duty Action II",
     COLLECT = "Collect",

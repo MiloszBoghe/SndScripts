@@ -1,4 +1,13 @@
 require('HelperFunctions')
+
+local missionIds = {
+    [16] = 1621,
+    [17] = 1649
+}
+
+JobId = Player.Job.Id
+local missionId = missionIds[JobId]
+
 local function RestoreIntegrity()
     Eureka = HasStatus(STATUS_IDS.WISE_TO_THE_WORLD)
     while GetIntegrity() <= 3 and (GetGp() >= 300 or Eureka) do
@@ -8,8 +17,8 @@ local function RestoreIntegrity()
         end
 
         if GetGp() >= 300 and GetIntegrity() < 4 then
-            Echo("Using Solid Reason")
-            Action(ACTIONS.SOLID_REASON)
+            Echo("Using Solid Reason / Ageless Words")
+            Action(ACTIONS.INTEGRITY_RESTORE)
             Eureka = HasStatus(STATUS_IDS.WISE_TO_THE_WORLD)
         end
     end
@@ -63,7 +72,7 @@ while true do
     Wait(1)
 
     if not CurrentMission then
-        StartMission()
+        StartMission(missionId)
         Wait(2)
         CurrentMission = GetCurrentMission()
     end
